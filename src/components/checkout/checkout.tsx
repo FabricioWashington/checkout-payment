@@ -125,7 +125,9 @@ export function Checkout() {
                 <PaymentOutcome
                   status={state.status}
                   method={state.method}
+                  cycle={state.cycle}
                   amountCents={amountCents}
+                  email={personalForm.getValues("email")}
                   errorMessage={state.errorMessage}
                   onConfirmPayment={actions.submitSuccess}
                   onRetry={actions.backToForm}

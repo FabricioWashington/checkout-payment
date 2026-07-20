@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Check, Copy, Loader2 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, Copy, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PixIcon } from "@/components/checkout/icons/pix-icon";
 import { SuccessState } from "@/components/checkout/success-state";
 import { PaymentErrorBanner } from "@/components/checkout/payment-error-banner";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import type { PaymentMethodId, PaymentStatus } from "@/hooks/use-checkout";
+import type { BillingCycle } from "@/lib/plans";
+import { signatureTransition } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 
 const PIX_PAYLOAD =
   "00020126580014BR.GOV.BCB.PIX0136a629534e-7693-4846-b028-f142082d7b70520400005303986540510.005802BR5913Nebula Assinaturas6008Sao Paulo62070503***6304E2CA";
@@ -18,7 +22,9 @@ const COUNTDOWN_SECONDS = 15 * 60;
 interface PaymentOutcomeProps {
   status: PaymentStatus;
   method: PaymentMethodId;
+  cycle: BillingCycle;
   amountCents: number;
+  email: string;
   errorMessage: string | null;
   onConfirmPayment: () => void;
   onRetry: () => void;
@@ -28,19 +34,16 @@ interface PaymentOutcomeProps {
 export function PaymentOutcome({
   status,
   method,
+  cycle,
   amountCents,
+  email,
   errorMessage,
   onConfirmPayment,
   onRetry,
   onReset,
 }: PaymentOutcomeProps) {
   if (status === "processing") {
-    return (
-      <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-16 text-center">
-        <Loader2 className="size-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Processando pagamento...</p>
-      </div>
-    );
+    return <ProcessingOutcome />;
   }
 
   if (status === "awaiting_pix") {
@@ -54,7 +57,7 @@ export function PaymentOutcome({
   if (status === "success") {
     return (
       <div className="rounded-2xl border border-border bg-card p-8">
-        <SuccessState amountCents={amountCents} onReset={onReset} />
+        <SuccessState amountCents={amountCents} cycle={cycle} email={email} onReset={onReset} />
       </div>
     );
   }
@@ -73,6 +76,87 @@ export function PaymentOutcome({
   }
 
   return null;
+}
+
+const PROCESSING_STEPS = ["Verificando dados", "Conectando com seu banco", "Confirmando pagamento"];
+const PROCESSING_STEP_MS = 620;
+
+function ProcessingOutcome() {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (activeIndex >= PROCESSING_STEPS.length - 1) return;
+    const timeout = setTimeout(() => {
+      setActiveIndex((current) => Math.min(current + 1, PROCESSING_STEPS.length - 1));
+    }, PROCESSING_STEP_MS);
+    return () => clearTimeout(timeout);
+  }, [activeIndex]);
+
+  return (
+    <div className="flex flex-col items-center gap-8 rounded-2xl border border-border bg-card p-10 text-center sm:p-14">
+      <div className="relative flex size-16 items-center justify-center">
+        <svg className="size-16 animate-spin" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="28" strokeWidth="4" className="stroke-border" />
+          <circle
+            cx="32"
+            cy="32"
+            r="28"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray="44 132"
+            className="stroke-primary"
+          />
+        </svg>
+        <Lock className="absolute size-5 text-primary" />
+      </div>
+
+      <div className="flex w-full max-w-60 flex-col gap-4">
+        <p className="font-heading text-base font-semibold text-foreground">
+          Processando pagamento
+        </p>
+        <ul className="flex flex-col gap-2.5 text-left">
+          {PROCESSING_STEPS.map((step, index) => {
+            const isDone = index < activeIndex;
+            const isActive = index === activeIndex;
+            return (
+              <li key={step} className="flex items-center gap-2.5 text-sm">
+                <span
+                  className={cn(
+                    "flex size-5 shrink-0 items-center justify-center rounded-full",
+                    isDone ? "bg-primary" : isActive ? "bg-accent" : "bg-muted"
+                  )}
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    {isDone ? (
+                      <motion.span
+                        key="done"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={signatureTransition(0.25)}
+                      >
+                        <Check className="size-3 text-primary-foreground" />
+                      </motion.span>
+                    ) : isActive ? (
+                      <motion.span
+                        key="active"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={signatureTransition(0.2)}
+                        className="size-1.5 animate-pulse rounded-full bg-primary"
+                      />
+                    ) : null}
+                  </AnimatePresence>
+                </span>
+                <span className={cn(isDone || isActive ? "text-foreground" : "text-muted-foreground")}>
+                  {step}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
 }
 
 function PixOutcome({
