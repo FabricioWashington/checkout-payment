@@ -94,7 +94,11 @@ function ProcessingOutcome() {
 
   return (
     <div className="flex flex-col items-center gap-8 rounded-2xl border border-border bg-card p-10 text-center sm:p-14">
-      <div className="relative flex size-16 items-center justify-center">
+      <motion.div
+        layoutId="payment-status-icon"
+        transition={signatureTransition(0.4)}
+        className="relative flex size-16 items-center justify-center"
+      >
         <svg className="size-16 animate-spin" viewBox="0 0 64 64" fill="none">
           <circle cx="32" cy="32" r="28" strokeWidth="4" className="stroke-border" />
           <circle
@@ -108,7 +112,7 @@ function ProcessingOutcome() {
           />
         </svg>
         <Lock className="absolute size-5 text-primary" />
-      </div>
+      </motion.div>
 
       <div className="flex w-full max-w-60 flex-col gap-4">
         <p className="font-heading text-base font-semibold text-foreground">

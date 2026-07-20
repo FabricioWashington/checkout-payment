@@ -48,7 +48,11 @@ export function SuccessState({ amountCents, cycle, email, onReset }: SuccessStat
 
   return (
     <div className="flex flex-col items-center gap-6 py-2 text-center">
-      <div className="relative flex size-20 items-center justify-center">
+      <motion.div
+        layoutId="payment-status-icon"
+        transition={signatureTransition(0.4)}
+        className="relative flex size-20 items-center justify-center"
+      >
         <div className="absolute inset-0 rounded-full bg-primary/10" />
         <svg viewBox="0 0 52 52" className="relative size-10" fill="none">
           <motion.circle
@@ -72,7 +76,7 @@ export function SuccessState({ amountCents, cycle, email, onReset }: SuccessStat
             transition={signatureTransition(0.5, 0.4)}
           />
         </svg>
-      </div>
+      </motion.div>
 
       <div>
         <h2 className="font-heading text-2xl font-semibold text-foreground">
