@@ -118,7 +118,22 @@ export function getCardNumberDisplayGroups(cardNumber: string, brand: CardBrand)
 }
 
 export function formatExpiry(expiry: string): string {
-  const digits = onlyDigits(expiry).slice(0, 4);
+  let digits = onlyDigits(expiry).slice(0, 4);
+
+  if (digits.length === 1 && Number(digits) > 1) {
+    digits = `0${digits}`;
+  }
+
+  if (digits.length >= 2) {
+    const month = Number(digits.slice(0, 2));
+    if (month > 12) {
+      digits = `12${digits.slice(2)}`;
+    } else if (month === 0) {
+      digits = `01${digits.slice(2)}`;
+    }
+  }
+
+  digits = digits.slice(0, 4);
   if (digits.length < 3) return digits;
   return `${digits.slice(0, 2)}/${digits.slice(2)}`;
 }

@@ -97,6 +97,24 @@ describe("formatExpiry", () => {
   it("ignores non-digit characters and caps at 4 digits", () => {
     expect(formatExpiry("12/25/99")).toBe("12/25");
   });
+
+  it("auto-pads a single leading digit greater than 1 with a zero", () => {
+    expect(formatExpiry("2")).toBe("02");
+    expect(formatExpiry("9")).toBe("09");
+  });
+
+  it("does not pad when the first digit could still lead to 10, 11 or 12", () => {
+    expect(formatExpiry("1")).toBe("1");
+  });
+
+  it("clamps a month above 12 down to 12", () => {
+    expect(formatExpiry("13")).toBe("12");
+    expect(formatExpiry("2028")).toBe("12/28");
+  });
+
+  it("clamps a month of 00 up to 01", () => {
+    expect(formatExpiry("0028")).toBe("01/28");
+  });
 });
 
 describe("isExpiryDateValid", () => {
