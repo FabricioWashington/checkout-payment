@@ -13,7 +13,6 @@ import { PaymentMethodSelector } from "@/components/checkout/payment-method-sele
 import { PaymentOutcome } from "@/components/checkout/payment-outcome";
 import { CreditCard3D } from "@/components/checkout/credit-card-3d";
 import { CardForm } from "@/components/checkout/forms/card-form";
-import { WalletButtons } from "@/components/checkout/forms/wallet-buttons";
 import { PersonalDataForm } from "@/components/checkout/forms/personal-data-form";
 import { useCheckout, type PaymentMethodId } from "@/hooks/use-checkout";
 import { useCardPreview } from "@/hooks/use-card-preview";
@@ -36,6 +35,10 @@ function getSubmitLabel(method: PaymentMethodId): string {
       return "Autorizar Pix Automático";
     case "boleto":
       return "Gerar boleto";
+    case "apple_pay":
+      return "Pagar com Apple Pay";
+    case "google_pay":
+      return "Pagar com Google Pay";
     default:
       return "Finalizar pagamento";
   }
@@ -142,18 +145,12 @@ export function Checkout() {
                   </div>
 
                   {state.method === "card" && (
-                    <div className="flex flex-col gap-6">
-                      <div className="max-w-sm">
-                        <CreditCard3D preview={cardPreview} />
-                      </div>
-                      <CardForm
-                        control={cardForm.control}
-                        onUpdatePreview={updateCardPreview}
-                        disabled={isProcessing}
-                      />
-                    </div>
+                    <CardForm
+                      control={cardForm.control}
+                      onUpdatePreview={updateCardPreview}
+                      disabled={isProcessing}
+                    />
                   )}
-                  {state.method === "wallet" && <WalletButtons />}
 
                   <div>
                     <h2 className="mb-3 text-sm font-semibold text-foreground">Dados pessoais</h2>
@@ -186,8 +183,23 @@ export function Checkout() {
           </AnimatePresence>
         </div>
 
-        <aside className="order-1 rounded-2xl border border-border bg-card p-6 lg:sticky lg:top-8 lg:order-2">
-          <OrderSummary cycle={state.cycle} onCycleChange={actions.setCycle} />
+        <aside className="order-1 flex flex-col gap-6 lg:sticky lg:top-8 lg:order-2">
+          <AnimatePresence>
+            {state.method === "card" && (
+              <motion.div
+                key="credit-card-preview"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={signatureTransition(0.3)}
+              >
+                <CreditCard3D preview={cardPreview} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <OrderSummary cycle={state.cycle} onCycleChange={actions.setCycle} />
+          </div>
         </aside>
       </form>
     </main>

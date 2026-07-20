@@ -1,6 +1,6 @@
 "use client";
 
-import { Barcode, CreditCard, Wallet } from "lucide-react";
+import { Apple, Barcode, CreditCard, Wallet } from "lucide-react";
 import { PixIcon } from "@/components/checkout/icons/pix-icon";
 import type { PaymentMethodId } from "@/hooks/use-checkout";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,8 @@ const METHODS: PaymentMethodOption[] = [
   { id: "pix", label: "Pix", icon: PixIcon },
   { id: "pix_automatico", label: "Pix Automático", icon: PixIcon },
   { id: "boleto", label: "Boleto", icon: Barcode },
-  { id: "wallet", label: "Carteira digital", icon: Wallet },
+  { id: "apple_pay", label: "Apple Pay", icon: Apple },
+  { id: "google_pay", label: "Google Pay", icon: Wallet },
 ];
 
 interface PaymentMethodSelectorProps {

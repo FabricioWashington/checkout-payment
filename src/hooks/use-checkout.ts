@@ -4,7 +4,13 @@ import { useCallback, useReducer } from "react";
 import type { BillingCycle } from "@/lib/plans";
 
 export type CheckoutStep = "form" | "outcome";
-export type PaymentMethodId = "card" | "pix" | "pix_automatico" | "boleto" | "wallet";
+export type PaymentMethodId =
+  | "card"
+  | "pix"
+  | "pix_automatico"
+  | "boleto"
+  | "apple_pay"
+  | "google_pay";
 export type PaymentStatus =
   | "idle"
   | "processing"
