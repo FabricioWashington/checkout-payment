@@ -131,7 +131,9 @@ function PixOutcome({
         onClick={() => copy(PIX_PAYLOAD)}
         className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border border-border bg-muted px-4 py-3 text-left"
       >
-        <span className="truncate font-mono text-xs text-muted-foreground">{PIX_PAYLOAD}</span>
+        <span className="min-w-0 truncate font-mono text-xs text-muted-foreground">
+          {PIX_PAYLOAD}
+        </span>
         {copied ? (
           <Check className="size-4 shrink-0 text-primary" />
         ) : (

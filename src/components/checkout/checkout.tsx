@@ -110,7 +110,7 @@ export function Checkout() {
 
       <form
         onSubmit={handleSubmit}
-        className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_360px] lg:gap-10 lg:px-8 lg:py-12"
+        className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10 lg:px-8 lg:py-12"
       >
         <div className="order-2 lg:order-1">
           <AnimatePresence mode="wait">
