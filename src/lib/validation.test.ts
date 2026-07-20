@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cardFormSchema, pixAutomaticoConsentSchema } from "@/lib/validation";
+import { cardFormSchema, personalDataSchema } from "@/lib/validation";
 
 function futureExpiry(): string {
   const now = new Date();
@@ -55,12 +55,35 @@ describe("cardFormSchema", () => {
   });
 });
 
-describe("pixAutomaticoConsentSchema", () => {
-  it("accepts consent given", () => {
-    expect(pixAutomaticoConsentSchema.safeParse({ consent: true }).success).toBe(true);
+describe("personalDataSchema", () => {
+  const validPayload = {
+    email: "ada@example.com",
+    fullName: "Ada Lovelace",
+    document: "529.982.247-25",
+    phone: "(11) 98765-4321",
+  };
+
+  it("accepts a fully valid payload", () => {
+    expect(personalDataSchema.safeParse(validPayload).success).toBe(true);
   });
 
-  it("rejects consent withheld", () => {
-    expect(pixAutomaticoConsentSchema.safeParse({ consent: false }).success).toBe(false);
+  it("rejects an invalid email", () => {
+    const result = personalDataSchema.safeParse({ ...validPayload, email: "not-an-email" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a name without a surname", () => {
+    const result = personalDataSchema.safeParse({ ...validPayload, fullName: "Ada" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an invalid CPF", () => {
+    const result = personalDataSchema.safeParse({ ...validPayload, document: "111.111.111-11" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a phone with the wrong length", () => {
+    const result = personalDataSchema.safeParse({ ...validPayload, phone: "(11) 9876-543" });
+    expect(result.success).toBe(false);
   });
 });

@@ -10,29 +10,36 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { OrderSummary } from "@/components/checkout/order-summary";
 import { PaymentMethodSelector } from "@/components/checkout/payment-method-selector";
-import { PaymentErrorBanner } from "@/components/checkout/payment-error-banner";
-import { SuccessState } from "@/components/checkout/success-state";
+import { PaymentOutcome } from "@/components/checkout/payment-outcome";
 import { CreditCard3D } from "@/components/checkout/credit-card-3d";
 import { CardForm } from "@/components/checkout/forms/card-form";
-import { PixView } from "@/components/checkout/forms/pix-view";
-import { PixAutomaticoView } from "@/components/checkout/forms/pix-automatico-view";
-import { BoletoView } from "@/components/checkout/forms/boleto-view";
 import { WalletButtons } from "@/components/checkout/forms/wallet-buttons";
 import { PersonalDataForm } from "@/components/checkout/forms/personal-data-form";
-import { useCheckout } from "@/hooks/use-checkout";
+import { useCheckout, type PaymentMethodId } from "@/hooks/use-checkout";
 import { useCardPreview } from "@/hooks/use-card-preview";
 import { PRO_PLAN, getPriceForCycle } from "@/lib/plans";
 import { signatureTransition } from "@/lib/motion";
 import {
   cardFormSchema,
   personalDataSchema,
-  pixAutomaticoConsentSchema,
   type CardFormValues,
   type PersonalDataValues,
-  type PixAutomaticoConsentValues,
 } from "@/lib/validation";
 
 const PAYMENT_SIMULATION_MS = 1800;
+
+function getSubmitLabel(method: PaymentMethodId): string {
+  switch (method) {
+    case "pix":
+      return "Pagar com Pix";
+    case "pix_automatico":
+      return "Autorizar Pix Automático";
+    case "boleto":
+      return "Gerar boleto";
+    default:
+      return "Finalizar pagamento";
+  }
+}
 
 export function Checkout() {
   const { state, actions } = useCheckout();
@@ -50,10 +57,6 @@ export function Checkout() {
     defaultValues: { cardNumber: "", cardName: "", expiry: "", cvv: "" },
     mode: "onBlur",
   });
-  const pixAutoForm = useForm<PixAutomaticoConsentValues>({
-    resolver: zodResolver(pixAutomaticoConsentSchema),
-    defaultValues: { consent: false },
-  });
 
   const amountCents =
     state.method === "pix_automatico"
@@ -69,33 +72,26 @@ export function Checkout() {
       );
       return;
     }
+    if (state.method === "pix" || state.method === "pix_automatico") {
+      actions.awaitPix();
+      return;
+    }
+    if (state.method === "boleto") {
+      actions.awaitBoleto();
+      return;
+    }
     actions.submitSuccess();
-  }, [actions, devForceError]);
+  }, [actions, devForceError, state.method]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (isProcessing) return;
 
     const isPersonalValid = await personalForm.trigger();
-    const isMethodValid =
-      state.method === "card"
-        ? await cardForm.trigger()
-        : state.method === "pix_automatico"
-          ? await pixAutoForm.trigger()
-          : true;
+    const isMethodValid = state.method === "card" ? await cardForm.trigger() : true;
 
     if (!isPersonalValid || !isMethodValid) return;
     await runPayment();
-  }
-
-  if (state.step === "success") {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-        <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-sm">
-          <SuccessState amountCents={amountCents} onReset={actions.reset} />
-        </div>
-      </main>
-    );
   }
 
   return (
@@ -113,79 +109,81 @@ export function Checkout() {
         onSubmit={handleSubmit}
         className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_360px] lg:items-start lg:gap-10 lg:px-8 lg:py-12"
       >
-        <div className="order-2 flex flex-col gap-8 lg:order-1">
-          <div>
-            <h2 className="mb-3 text-sm font-semibold text-foreground">Forma de pagamento</h2>
-            <PaymentMethodSelector
-              value={state.method}
-              onChange={actions.setMethod}
-              disabled={isProcessing}
-            />
-          </div>
-
+        <div className="order-2 lg:order-1">
           <AnimatePresence mode="wait">
             <motion.div
-              key={state.method}
+              key={state.step === "form" ? "form" : state.status}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={signatureTransition(0.3)}
-              className="flex flex-col gap-6"
             >
-              {state.method === "card" && (
-                <>
-                  <div className="max-w-sm">
-                    <CreditCard3D preview={cardPreview} />
-                  </div>
-                  <CardForm
-                    control={cardForm.control}
-                    onUpdatePreview={updateCardPreview}
-                    disabled={isProcessing}
-                  />
-                </>
-              )}
-              {state.method === "pix" && <PixView />}
-              {state.method === "pix_automatico" && (
-                <PixAutomaticoView
-                  control={pixAutoForm.control}
-                  monthlyEquivalentCents={PRO_PLAN.monthlyPriceCents}
-                  disabled={isProcessing}
+              {state.step === "outcome" ? (
+                <PaymentOutcome
+                  status={state.status}
+                  method={state.method}
+                  amountCents={amountCents}
+                  errorMessage={state.errorMessage}
+                  onConfirmPayment={actions.submitSuccess}
+                  onRetry={actions.backToForm}
+                  onReset={actions.reset}
                 />
+              ) : (
+                <div className="flex flex-col gap-8">
+                  <div>
+                    <h2 className="mb-3 text-sm font-semibold text-foreground">
+                      Forma de pagamento
+                    </h2>
+                    <PaymentMethodSelector
+                      value={state.method}
+                      onChange={actions.setMethod}
+                      disabled={isProcessing}
+                    />
+                  </div>
+
+                  {state.method === "card" && (
+                    <div className="flex flex-col gap-6">
+                      <div className="max-w-sm">
+                        <CreditCard3D preview={cardPreview} />
+                      </div>
+                      <CardForm
+                        control={cardForm.control}
+                        onUpdatePreview={updateCardPreview}
+                        disabled={isProcessing}
+                      />
+                    </div>
+                  )}
+                  {state.method === "wallet" && <WalletButtons />}
+
+                  <div>
+                    <h2 className="mb-3 text-sm font-semibold text-foreground">Dados pessoais</h2>
+                    <PersonalDataForm control={personalForm.control} disabled={isProcessing} />
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <Button type="submit" size="lg" className="h-12 text-base">
+                      {getSubmitLabel(state.method)}
+                    </Button>
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                      <Lock className="size-3.5" />
+                      Pagamento protegido
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-border pt-4">
+                    <Label htmlFor="dev-force-error" className="text-xs text-muted-foreground">
+                      Simular falha no pagamento (dev)
+                    </Label>
+                    <Switch
+                      id="dev-force-error"
+                      checked={devForceError}
+                      onCheckedChange={setDevForceError}
+                    />
+                  </div>
+                </div>
               )}
-              {state.method === "boleto" && <BoletoView />}
-              {state.method === "wallet" && <WalletButtons />}
             </motion.div>
           </AnimatePresence>
-
-          <div>
-            <h2 className="mb-3 text-sm font-semibold text-foreground">Dados pessoais</h2>
-            <PersonalDataForm control={personalForm.control} disabled={isProcessing} />
-          </div>
-
-          {state.status === "error" && state.errorMessage && (
-            <PaymentErrorBanner message={state.errorMessage} />
-          )}
-
-          <div className="flex flex-col gap-3">
-            <Button type="submit" size="lg" className="h-12 text-base" disabled={isProcessing}>
-              {isProcessing ? "Confirmando pagamento..." : "Finalizar pagamento"}
-            </Button>
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <Lock className="size-3.5" />
-              Pagamento protegido
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between border-t border-border pt-4">
-            <Label htmlFor="dev-force-error" className="text-xs text-muted-foreground">
-              Simular falha no pagamento (dev)
-            </Label>
-            <Switch
-              id="dev-force-error"
-              checked={devForceError}
-              onCheckedChange={setDevForceError}
-            />
-          </div>
         </div>
 
         <aside className="order-1 rounded-2xl border border-border bg-card p-6 lg:sticky lg:top-8 lg:order-2">

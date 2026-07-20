@@ -30,14 +30,6 @@ export const cardFormSchema = z
 
 export type CardFormValues = z.infer<typeof cardFormSchema>;
 
-export const pixAutomaticoConsentSchema = z.object({
-  consent: z.boolean().refine((value) => value === true, {
-    message: "É necessário autorizar o débito recorrente para continuar",
-  }),
-});
-
-export type PixAutomaticoConsentValues = z.infer<typeof pixAutomaticoConsentSchema>;
-
 export const personalDataSchema = z.object({
   email: z.string().trim().min(1, "Informe seu e-mail").email("E-mail inválido"),
   fullName: z

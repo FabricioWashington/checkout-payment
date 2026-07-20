@@ -71,7 +71,7 @@ export function SuccessState({ amountCents, onReset }: SuccessStateProps) {
         </p>
       </div>
 
-      <Button variant="outline" onClick={onReset}>
+      <Button type="button" variant="outline" onClick={onReset}>
         Simular nova assinatura
       </Button>
     </div>
