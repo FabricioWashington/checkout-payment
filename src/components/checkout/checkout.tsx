@@ -104,13 +104,13 @@ export function Checkout() {
           <ShieldCheck className="size-4" />
         </div>
         <span className="font-heading text-sm font-semibold tracking-tight text-foreground">
-          Nebula
+          fabricio.washington.dev
         </span>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_360px] lg:items-start lg:gap-10 lg:px-8 lg:py-12"
+        className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_360px] lg:gap-10 lg:px-8 lg:py-12"
       >
         <div className="order-2 lg:order-1">
           <AnimatePresence mode="wait">
@@ -184,6 +184,9 @@ export function Checkout() {
         </div>
 
         <aside className="order-1 flex flex-col gap-6 lg:sticky lg:top-8 lg:order-2">
+          <div className="flex flex-1 flex-col rounded-2xl border border-border bg-card p-6">
+            <OrderSummary cycle={state.cycle} onCycleChange={actions.setCycle} />
+          </div>
           <AnimatePresence>
             {state.method === "card" && (
               <motion.div
@@ -197,9 +200,6 @@ export function Checkout() {
               </motion.div>
             )}
           </AnimatePresence>
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <OrderSummary cycle={state.cycle} onCycleChange={actions.setCycle} />
-          </div>
         </aside>
       </form>
     </main>

@@ -83,17 +83,21 @@ export function CreditCard3D({ preview }: CreditCard3DProps) {
             className="absolute inset-0 overflow-hidden rounded-2xl p-5 shadow-xl shadow-brand-navy/20 backface-hidden sm:p-6"
             style={{
               background:
-                "linear-gradient(135deg, var(--color-brand-navy) 0%, #17296f 55%, #2f4599 100%)",
+                "radial-gradient(120% 120% at 78% 12%, rgba(255,255,255,0.14) 0%, transparent 55%), linear-gradient(135deg, var(--color-brand-navy) 0%, #17296f 55%, #2f4599 100%)",
             }}
           >
             <div
               ref={sheenRef}
-              className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent"
+              className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -skew-x-12 bg-linear-to-r from-transparent via-white/25 to-transparent"
             />
             <div className="relative flex h-full flex-col justify-between text-white">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="h-7 w-9 rounded-md bg-white/25 ring-1 ring-white/40" />
+                  <div className="relative h-7 w-9 overflow-hidden rounded-[5px] bg-linear-to-br from-[#f7e6b4] via-[#dbb977] to-[#a8793e] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.2)]">
+                    <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-black/15" />
+                    <div className="absolute inset-y-0 left-1/3 w-px bg-black/15" />
+                    <div className="absolute inset-y-0 right-1/3 w-px bg-black/15" />
+                  </div>
                   <Wifi className="size-4 rotate-90 text-white/70" />
                 </div>
                 <AnimatePresence mode="wait">
@@ -124,10 +128,20 @@ export function CreditCard3D({ preview }: CreditCard3DProps) {
                   ))}
                 </div>
                 <div className="mt-4 flex items-end justify-between gap-4">
-                  <span className="max-w-[65%] truncate text-sm tracking-wide text-white/90">
-                    {displayName}
-                  </span>
-                  <span className="font-mono text-sm text-white/90">{displayExpiry}</span>
+                  <div className="flex max-w-[65%] flex-col gap-0.5">
+                    <span className="text-[9px] font-medium tracking-[0.15em] text-white/45">
+                      TITULAR
+                    </span>
+                    <span className="truncate text-sm tracking-wide text-white/90">
+                      {displayName}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className="text-[9px] font-medium tracking-[0.15em] text-white/45">
+                      VALIDADE
+                    </span>
+                    <span className="font-mono text-sm text-white/90">{displayExpiry}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -137,7 +151,7 @@ export function CreditCard3D({ preview }: CreditCard3DProps) {
             className="absolute inset-0 overflow-hidden rounded-2xl backface-hidden transform-[rotateY(180deg)]"
             style={{
               background:
-                "linear-gradient(135deg, var(--color-brand-navy) 0%, #17296f 55%, #2f4599 100%)",
+                "radial-gradient(120% 120% at 78% 12%, rgba(255,255,255,0.14) 0%, transparent 55%), linear-gradient(135deg, var(--color-brand-navy) 0%, #17296f 55%, #2f4599 100%)",
             }}
           >
             <div className="mt-6 h-11 w-full bg-black/60" />

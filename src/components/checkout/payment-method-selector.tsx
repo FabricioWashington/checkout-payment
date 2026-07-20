@@ -28,7 +28,11 @@ interface PaymentMethodSelectorProps {
 
 export function PaymentMethodSelector({ value, onChange, disabled }: PaymentMethodSelectorProps) {
   return (
-    <div role="radiogroup" aria-label="Forma de pagamento" className="flex flex-col gap-2">
+    <div
+      role="radiogroup"
+      aria-label="Forma de pagamento"
+      className="grid grid-cols-2 gap-2 sm:grid-cols-3"
+    >
       {METHODS.map((method) => {
         const isActive = method.id === value;
         return (
@@ -40,14 +44,14 @@ export function PaymentMethodSelector({ value, onChange, disabled }: PaymentMeth
             disabled={disabled}
             onClick={() => onChange(method.id)}
             className={cn(
-              "flex cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+              "flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 px-2 py-3 text-center transition-colors disabled:cursor-not-allowed disabled:opacity-50",
               isActive
                 ? "border-primary bg-accent text-accent-foreground"
                 : "border-border bg-card text-foreground hover:border-muted-foreground/30"
             )}
           >
             <method.icon className="size-5 shrink-0" />
-            <span className="text-sm font-medium">{method.label}</span>
+            <span className="text-xs leading-tight font-medium text-balance">{method.label}</span>
           </button>
         );
       })}
